@@ -8,6 +8,49 @@
 
 ---
 
+## v1.17.0 (2026-09-15) — fork: OpenRouter 驱动的通用计价
+
+本版是 [`feiyang-dev/dsh-usage-plugin`](https://github.com/feiyang-dev/dsh-usage-plugin) 的下游
+fork 起点。基线不是上游 GitHub 的 `main`（停在 1.14.1），而是**已发布到 npm 的 1.16.5**——
+否则会在落后两个功能版本的代码上开工。
+
+### 新增 / New
+
+- **通用模型价格表（`lib/pricing.js`）**：价格由 OpenRouter 公开目录
+  （`https://openrouter.ai/api/v1/models`）填充，键是任意模型 id，值为每 100 万 token 的
+  单价。实测一次抓取得到 445 个模型，其中 418 个可用。
+- **`syncPrices` API**：拉取目录并落盘到 `pricing.json`。价格表为空时 `list` 会同步等一次，
+  让首次安装打开面板就有价格；仅是过期则在后台刷新，不拖慢响应。
+- **模型名解析**：精确 id → 型号名 → 别名表，三级回退。因此实录里的 `gpt-6-astra` 能命中
+  目录里的 `openai/gpt-6-astra`。解析不到即费用为 0，**不做相似型号的近似匹配**。
+- **`setAliases` / `setCurrency` API**：route 名与供应商型号名不一致时可显式映射；
+  货币仅影响展示符号，不做汇率换算（价格本来就是美元）。
+- **价格表页改为可搜索的平价表**，并带「同步价格」按钮与上次同步时间；新增 12 个计价单元测试
+  （`npm test` 共 42 个用例全过）。
+
+### 变更 / Changed
+
+- **计价不再看 provider**：原实现按 provider 白名单判定，非 DeepSeek 通道一律计 0，即使该模型
+  有公开价格。现在只看模型是否在表内。
+- **金额符号不再写死 `¥`**：跟随后端下发的 `currency`，默认 USD。原实现把美元金额按人民币
+  符号显示，数量级看着合理但币种是错的。
+- **移除 DeepSeek 专属价格表与折算**：`SILICONFLOW_PRICING`、`DIGITALOCEAN_PRICING`、
+  `EFFECTIVE_AT` 价格切换、以及为 USD→CNY 折算而存在的汇率步骤不再参与计价。
+- **`cacheHit` 语义修正**：取 `input_cache_read`；该字段缺失或为 `0` 时退回未命中价。
+  OpenRouter 对不支持缓存的模型返回 `0`，直接采信会把缓存输入算成免费并低估总花费。
+- **价格表持久化格式**扩展为 `{ base, peakValley, currency, meta, aliases }`，向后兼容旧文件。
+- 新增 `.gitattributes`（`* text=auto eol=lf`）：上游没有该文件，而本机 `core.autocrlf=true`
+  会让检出为 CRLF、库内为 LF，跨机同步时把整文件报成改动。
+
+### 说明 / Notes
+
+- `base` 与 `peakValley` 两档保留以兼容既有 UI/API/持久化文件，但**写入同一个平价**，
+  因此「高峰 / 空闲」退化为按北京时间对花费做时间分档，不再表示峰谷定价差异。
+- 余额查询页签（DeepSeek / SiliconFlow / DigitalOcean / 百炼）与峰谷拆分显示暂未移除，
+  它们已无意义但不会算错数。
+
+---
+
 ## v1.16.5 (2026-08-29)
 
 ### 新增 / New

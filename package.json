@@ -1,7 +1,7 @@
 {
   "name": "@feiyang666/dsh-usage-plugin",
-  "version": "1.16.5",
-  "description": "DeepSeek Harness usage & cost tracker plugin: per-call token/cache-hit stats, peak/off-peak billing, DeepSeek balance query, CSV/JSON/PNG export with custom destination, and persistent local storage. Ships a host half plus a web client half in one npm package; installs into a DSH profile as a dsh.bundle with one command (dsh plugin --profile web add @feiyang666/dsh-usage-plugin).",
+  "version": "1.17.0",
+  "description": "DeepSeek Harness usage & cost tracker plugin, forked to price any model via the OpenRouter catalog: per-call token/cache-hit stats, cache-aware cost, CSV/JSON/PNG export with custom destination, and persistent local storage. Ships a host half plus a web client half in one npm package; installs into a DSH profile as a dsh.bundle with one command (dsh plugin --profile web add github:vb2250158/dsh-usage-plugin#<sha>).",
   "keywords": [
     "deepseek",
     "harness",
@@ -11,14 +11,14 @@
     "cost",
     "tokens",
     "cache",
-    "balance"
+    "openrouter"
   ],
   "license": "MIT",
   "type": "module",
   "main": "lib/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/feiyang-dev/dsh-usage-plugin.git"
+    "url": "git+https://github.com/vb2250158/dsh-usage-plugin.git"
   },
   "contributors": [
     {
@@ -42,13 +42,14 @@
       "url": "https://github.com/mumuer1024"
     }
   ],
-  "homepage": "https://github.com/feiyang-dev/dsh-usage-plugin#readme",
+  "homepage": "https://github.com/vb2250158/dsh-usage-plugin#readme",
   "bugs": {
-    "url": "https://github.com/feiyang-dev/dsh-usage-plugin/issues"
+    "url": "https://github.com/vb2250158/dsh-usage-plugin/issues"
   },
   "exports": {
     ".": "./lib/index.js",
     "./client": "./lib/client.js",
+    "./pricing": "./lib/pricing.js",
     "./package.json": "./package.json"
   },
   "engines": {
@@ -74,6 +75,7 @@
     "CHANGELOG.md"
   ],
   "scripts": {
+    "test": "node --test",
     "wire": "node scripts/wire.js",
     "check": "node scripts/check-package.js",
     "prepublishOnly": "node scripts/check-package.js",

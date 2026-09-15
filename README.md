@@ -14,6 +14,38 @@
 
 </div>
 
+> ### Fork notice
+>
+> This is a **downstream fork** of [`feiyang-dev/dsh-usage-plugin`](https://github.com/feiyang-dev/dsh-usage-plugin)
+> (MIT; original authors are listed in `package.json`). It keeps the upstream usage-capture engine —
+> the `llm/stream` listener with its cache-write fallback and interrupted-call accounting — and replaces
+> the DeepSeek-specific price table with a **general catalog**, so any model can be priced.
+>
+> What this fork changes (v1.17.0):
+>
+> - **Pricing is catalog-driven.** `syncPrices` pulls `https://openrouter.ai/api/v1/models` and prices
+>   each call from the result. Cost is no longer gated on a provider allowlist, so a call is priced
+>   whichever route it went through, as long as its model is in the table.
+> - **Model matching is by name, not by hard-coded tier.** A record's `model` resolves exact id →
+>   bare model name → alias, so `gpt-6-astra` matches `openai/gpt-6-astra`. Unmatched models cost `0`
+>   by design — a visible gap beats a borrowed price from a similarly named model.
+> - **Currency follows the price source.** Prices are USD (OpenRouter's unit) and the money symbol
+>   follows the `currency` setting. The hard-coded `¥` and the USD/CNY conversion step are gone; both
+>   existed only to serve DeepSeek's CNY table.
+> - **Cache-aware.** `input_cache_read` is the cache-hit input price. When OpenRouter reports it as
+>   absent or `0` — which it does for models without caching — the miss price is used instead, because
+>   reading that `0` literally would price cached input as free and understate every total.
+> - **Pricing logic lives in `lib/pricing.js`**, so the rules are unit-testable rather than trapped
+>   inside the plugin's `apply()` closure. `npm test` runs 42 tests.
+>
+> **Still carried over from the DeepSeek model** (inert rather than wrong): the peak/off-peak *split*
+> of cost. Both tiers now hold the same flat catalog price, so "peak / off-peak" is a time-of-day
+> breakdown of one total. The balance-query tab and the `EFFECTIVE_AT` schedule switch are likewise
+> DeepSeek-only vestiges.
+>
+> Upstream belongs to its original authors — send upstream bugs upstream. Issues specific to the
+> OpenRouter pricing layer belong here.
+
 ---
 
 > ## 🔔 Important Notice (2026-08-16): npm package renamed
