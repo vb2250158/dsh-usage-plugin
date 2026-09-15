@@ -8,6 +8,32 @@
 
 ---
 
+## v1.17.2 (2026-09-15) — 修复价格同步被 64 KB 输出上限截断
+
+### 修复 / Fixed
+
+- **价格同步拿不到任何模型**（`lib/index.js` 的 `fetchOpenRouterPrices`）：子进程把整个
+  OpenRouter 目录（约 735 KB）写进 stdout，而 `runCollect` 给子进程 stdout 的上限是
+  `maxBytes: 65536`，超出部分被静默截断，`JSON.parse` 于是报
+  `Unexpected non-whitespace character after JSON at position 2`——看着像格式错误，
+  实际是长度上限。症状是价格表始终为空、`priceMeta.error` 留下上面那条报错，
+  所有调用费用按 0 计。
+  改为子进程把响应体写入临时文件、只回传 `{status, path, bytes}`（88 字节），
+  宿主再读文件解析，读完删除。
+
+### 说明 / Notes
+
+- 这是 fork 引入的新代码路径，上游不存在：上游的价格表写死在源码里，不经过子进程。
+  用 `node -e` 单独跑同一段脚本时输出完全正常（合法 JSON、819 KB），
+  只有经 `runCollect` 才会被截断——所以定位时不能只验证脚本本身，要验证整条采集链路。
+
+### 变更 / Changed
+
+- `dsh` 块新增 `upstreamRepository: "feiyang-dev/dsh-usage-plugin"`（v1.17.1）：插件管理器
+  在从 GitHub 添加插件时会读取该字段并写入清单，用于区分 fork 与原始项目。
+
+---
+
 ## v1.17.0 (2026-09-15) — fork: OpenRouter 驱动的通用计价
 
 本版是 [`feiyang-dev/dsh-usage-plugin`](https://github.com/feiyang-dev/dsh-usage-plugin) 的下游
