@@ -192,3 +192,18 @@ test('client isPeakNow / periodNow match the official weekend flat-rate rule (is
     if (expected === true && bj.indexOf('生效前') >= 0) assert.equal(period.label, '周末高峰时段')
   }
 })
+
+// 胶囊展开面板把「本轮」与「本会话」分成两段显示（位置即语义：胶囊挂在消息尾巴上，
+// 第一眼必须是本轮）。这两个段标题在英文环境下必须各自有词条，否则整块中文会被
+// 原样丢给英文用户——t() 对缺词条是静默回落到中文，不会报错，所以只能靠用例钉住。
+test('the turn / session section titles both resolve in English', async () => {
+  const { exports } = await loadClient()
+  const i = exports.__i18n
+  i.setLang('en')
+  assert.equal(i.t('本轮明细'), 'This turn')
+  assert.equal(i.t('本会话累计'), 'Session total')
+  assert.notEqual(i.t('本会话累计'), '本会话累计', 'English dictionary is missing 本会话累计')
+  i.setLang('zh')
+  assert.equal(i.t('本会话累计'), '本会话累计')
+  i.setLang('en')
+})

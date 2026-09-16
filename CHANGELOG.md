@@ -8,6 +8,45 @@
 
 ---
 
+## v1.21.1 (2026-09-16) — 胶囊与官方数字对齐：修掉 token 口径的两处偏差
+
+### 修复 / Fixes
+
+- **胶囊数字与官方 `用量` 不再对不上。** 同一行里插件报 903K、官方报 897K，差别不在
+  「本轮还是累计」这个语义上（位置本来就定了语义：composer 下方是整场会话，消息尾巴是
+  那一轮），而是同一批记录被算成了两个数。两处口径修正后两边相等：
+
+  1. **显示总量重复计入了 reasoning。** 数据源已把 reasoning 含在 `outputTokens` 内
+     （本机 9533 条记录中 reasoning 恒小于等于 output，是子集而非并列项），旧实现又单加了
+     一次 `reasoningTokens`。现在 `displayTotal = 计费输入 + outputTokens`，
+     reasoning 只作为明细展示，不进合计。
+
+  2. **缓存命中率的分母漏了 cacheWrite。** 分母原本是 `cacheRead + input`，而官方
+     `TokenUsageProjection` 的三个输入桶是互斥的：`uncachedInputTokens` + `cacheReadTokens`
+     + `cacheWriteTokens`。DeepSeek 系 provider 下 `cacheWriteTokens` 恰好等于 `inputTokens`，
+     量级是分母的三分之一。按本机全量记录对照，错误口径 97.92% vs 正确口径 95.92% ——
+     **差整整两个百分点**，且系统性地把命中率往高里报。
+
+### 变更 / Changes
+
+- **弹窗里「本轮」在前、「本会话」在后。** 胶囊挂在消息尾巴上，展开第一眼该是本轮明细；
+  会话累计移到末尾并明确标注为「本会话累计」，英文 `Session total`。原先叫「对话累计」，
+  措辞上把「会话」说得像「这一轮对话」，正是混淆的来源。
+
+- **口径只在服务端定义一次。** `computeAgg` 由 `apply()` 内的闭包提升为模块级具名导出，
+  客户端两处求和改为直接读后端算好的 `displayTotal` / `hitRate`，不再在前端重算 ——
+  两份实现迟早会漂移，这次就是。
+
+### 测试 / Tests
+
+- 新增 `test/token-accounting.test.js`：6 条用例，用真实量级的合成数据钉住上面两个口径
+  （reasoning 不进合计、分母含 cacheWrite、全命中读 100、无计费输入读 0 而非 NaN、
+  空窗口归零、reasoning 不超过 output）。测试直接 import `computeAgg`，测的就是界面跑的那份。
+- `test/client-i18n.test.js` 增加一条：分段标题 `本轮明细` / `本会话累计` 在英文环境下必须
+  各自有词条 —— `t()` 缺词条是静默回落中文、不会报错，只能靠用例钉。
+
+---
+
 ## v1.21.0 (2026-09-16) — 包名改回自有命名，脱离上游身份
 
 ### 变更 / Changes
