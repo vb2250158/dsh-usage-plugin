@@ -8,6 +8,41 @@
 
 ---
 
+## v1.21.2 (2026-09-16) — 修掉弹窗一展开就崩，并把渲染逻辑提成可测的纯函数
+
+### 修复 / Fixes
+
+- **展开消息尾巴上的胶囊会让整个弹窗渲染失败。** `turnStats()` 里引用了 `msgTime` 和
+  `stepStart` —— 这两个名字只存在于 `turnWindowFrom(msgTime, stepStart, turnStart)` 的
+  **形参表**里，并不在组件作用域。JS 到运行时才炸，且只在「本轮有数据 + 展开弹窗」这条
+  路上炸：用户看到的是点了没反应、面板空白，控制台一条
+  `ReferenceError: msgTime is not defined`，堆栈落在
+  `slot entry crashed in 'conversation.chat.assistant-actions'`。
+
+  这个引用从 v1.14.0（首次引入消息底部 token 弹窗的那版）就在，一直没被发现——因为静态检查
+  看不见（合法的标识符写法），而它需要真实数据才会走到。
+
+  修法：本轮耗时改为「本轮窗口终点 − 该步起点」，两个值都在作用域内，语义等价（本轮耗时
+  本来就是该轮完成时间减去本轮起点）。
+
+### 变更 / Changes
+
+- **弹窗内容提成模块级纯函数 `renderTokenPanel(view)`。** 这段原先是组件内的闭包族
+  （`stat` / `cacheBar` / `models` / `turnStats` / `summary` / `body`），依赖全靠词法作用域
+  兜着，写错一个名字编译器与 lint 都拦不住——上面那个 bug 就是这么来的。现在依赖全部显式
+  列在 `view` 上，可以脱离 React 直接渲染到底。
+
+### 测试 / Tests
+
+- 新增 `test/client-render-smoke.test.js`：5 条用例，直接喂 `view` 把弹窗渲染一遍。
+  除了钉住这次的 `ReferenceError`，还覆盖四种非就绪状态（loading / error / nowindow /
+  无数据）与零消耗、缺时间窗两条边界。
+- 其中一条同时断言压缩值与 `title` 上的精确值（`213K` 与 `213,363`）：光看压缩值，
+  「重复计入 reasoning」的 `213,468` 会被压成同一个 `213K`，撞上去看不出问题。
+- 全量 69 例通过。
+
+---
+
 ## v1.21.1 (2026-09-16) — 胶囊与官方数字对齐：修掉 token 口径的两处偏差
 
 ### 修复 / Fixes
