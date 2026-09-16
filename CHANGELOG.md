@@ -8,6 +8,37 @@
 
 ---
 
+## v1.20.1 (2026-09-16) — 消息胶囊改报本轮，不再冒充会话累计
+
+### 修复 / Fixes
+
+- **胶囊上的数字现在是本轮，而不是整场对话累计。** 消息底部那枚
+  `886M tok · 缓存命中 99%` 读的是「本轮」时间窗，可这个窗口一直是空的：客户端从
+  `snap.chat.nodes` 取消息完成时间与步骤起点，而 `SessionSnapshot` 上根本没有 `chat`
+  字段（对话快照由 ui-conversation 的 view 层装配）。`from`/`to` 双双为 0 时宿主不做时间
+  过滤，返回的正是整场累计 —— 同一行里插件胶囊报 886M、官方 `用量 4.4M tok` 报 4.4M，
+  两个数差了两百倍。
+
+- **改用官方标准 hook `useChat`，窗口取整轮。** 快照入口换成 ui-chat 经 `uiSession.provide`
+  提供的 `useChat`（值为 `ChatSnapshot`：`nodes` 是带 `values()` 的 keyed store，
+  `timeline.turns` 给出每个 Turn 的起止）。窗口优先取整轮（`turn/start` → 该消息完成时间），
+  退一步用所在步骤起点，再退一步用消息完成前 5 分钟。
+
+- **取不到窗口时不再回退成累计。** 三者全无时胶囊显示 `—`，弹窗写明「本轮时间窗不可用」。
+  旧版会退回 `conversation` 累计，把会话总量当成「本轮」——那比空着更糟。
+
+### 备注 / Notes
+
+- 读数只返回数字：hook selector 每次返回新对象会让 `useSyncExternalStore` 反复重渲染，
+  所以三个字段各查一次快照，而不是返回一个对象。
+- 遍历与窗口合成抽成纯函数 `turnWindowField` / `turnWindowFrom`，挂在 `exports.__turnWindow`
+  测试面上。新增 `test/token-window.test.js` 7 个用例覆盖字段来源、缺 timeline、messageId
+  不匹配、SessionSnapshot 形状（旧 bug 的前提）与窗口退化规则。测试 50 → **57 全通过**。
+- 影响面：只改客户端胶囊与其弹窗的取数，Host 侧 `tokenForMessage` 未动；弹窗里的
+  「对话累计」照旧显示整场数据。
+
+---
+
 ## v1.20.0 (2026-09-16) — 关闭「剩余余额查询」面板
 
 ### 界面 / UI
