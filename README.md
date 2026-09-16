@@ -60,7 +60,7 @@
 
 ## Overview
 
-dsh-usage-plugin is a **usage & cost tracker** plugin in the DeepSeek Harness ecosystem (a DSH plugin shipped as a Host + Client two-in-one package). After installation, **"Usage & Cost"** and **"Balance Query"** tabs appear in the Web UI, right after "Conversation" and "Trace":
+dsh-usage-plugin is a **usage & cost tracker** plugin in the DeepSeek Harness ecosystem (a DSH plugin shipped as a Host + Client two-in-one package). After installation, **"Usage & Cost"** appears in the Web UI as a tab right after "Conversation" and "Trace". This fork also carries a **"Balance Query"** panel, but it is **disabled by default** (`ENABLE_BALANCE_PANEL` in `lib/client.js` — see the changelog for why, and flip it to re-enable):
 
 > Supports **Windows / macOS / Linux**: paths are handled per platform (`node:path`), and the folder picker / "reveal in file manager" use each OS's native mechanism (macOS: `osascript` / `open`; Linux: `zenity` / `xdg-open`). Balance query and export do not depend on Windows-only commands.
 

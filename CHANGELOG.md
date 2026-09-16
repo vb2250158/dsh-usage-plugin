@@ -8,6 +8,30 @@
 
 ---
 
+## v1.20.0 (2026-09-16) — 关闭「剩余余额查询」面板
+
+### 界面 / UI
+
+- **「剩余余额查询」的两个入口默认关闭**：设置页左栏的分区与对话页的同名标签都不再注册。
+  该面板逐个服务商去请求官方余额接口，而本机 `settings.yaml` 里没有 DeepSeek 供应商 ——
+  插件固定拿 `DEEPSEEK_API_KEY` 那条早已失效的凭据去问，一打开就固定 `HTTP 401`
+  （`Your api key: ****yZTt is invalid`），整个面板只剩报错，是纯噪音。
+
+- **用开关控制，不是删除**：`lib/client.js` 顶部的 `ENABLE_BALANCE_PANEL` 常量。
+  改回 `true` 两个入口一起回来，`BalancePanel` 及其全部代码路径保持原样，
+  将来合并上游更新时不会产生结构性冲突。
+
+### 备注
+
+- 面板里除 DeepSeek 外还有 SiliconFlow / DigitalOcean / AMD GPU Cloud / 百炼 Token Plan
+  四个标签，关闭后它们也一并不可见。需要时把开关打回 `true`。
+- 新增 `test/slot-registration.test.js`：用一个只记账的假 `slots` 真跑一遍 `apply()`，
+  断言注册的条目恰好是三个用量入口、且不含任何 `balance` 条目。
+  「开关常量是 false」和「注册点真的被跳过」是两件事，前者证明不了后者。
+  测试总数 48 → **50 全通过**。
+
+---
+
 ## v1.19.0 (2026-09-16) — 会话排行显示会话名，点击可跳转
 
 ### 界面 / UI

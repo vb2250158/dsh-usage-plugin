@@ -57,7 +57,7 @@
 
 ## 简介
 
-dsh-usage-plugin 是 DeepSeek Harness 生态的**用量与消耗统计插件**（DSH plugin，Host + Client 双面一体包）。装好后在 WebUI 顶部「对话」「轨迹」之后会出现 **「用量与消耗」** 与 **「剩余余额查询」** 两个 tab：
+dsh-usage-plugin 是 DeepSeek Harness 生态的**用量与消耗统计插件**（DSH plugin，Host + Client 双面一体包）。装好后在 WebUI 顶部「对话」「轨迹」之后会出现 **「用量与消耗」** tab。本 fork 另带一个 **「剩余余额查询」** 面板，但**默认关闭**（开关为 `lib/client.js` 的 `ENABLE_BALANCE_PANEL`，原因见更新日志；改回 `true` 即恢复）：
 
 > 支持 **Windows / macOS / Linux**：路径按当前平台处理（`node:path`），目录选择与「打开所在目录」均调用系统原生方式（macOS 用 `osascript` / `open`，Linux 用 `zenity` / `xdg-open`），余额查询与导出不依赖 Windows 专用命令。
 
@@ -68,7 +68,7 @@ dsh-usage-plugin 是 DeepSeek Harness 生态的**用量与消耗统计插件**�
 - **中断调用如实呈现**：被中止 / 出错 / 超时（如手动停止生成、流中断）的调用在面板中标红显示「中断」徽标、结束原因（已中断 / 错误 / 超时）与消耗 `—`。这类调用官方后台仍会计入「API 请求次数」并按实际 token 计费，但 harness 不向插件上报 usage——插件按 0 token 记录它们，**调用次数与官方口径一致，消耗不受影响**；概览「调用次数」卡片会提示 `中断 N（未计费）`。
 - **本地统计 vs 官方后台的差异提示**：用量面板顶部固定显示说明横幅——本面板统计的是插件本地捕获的调用（官方价格 + 峰谷时段），与官方后台（platform.deepseek.com 用量页）相比金额可能更低：① 中断/出错/超时的调用官方仍按实际 token 计费而插件按 0 记录；② 账号下其他 API Key（其它应用/脚本）的调用不经过 DeepSeek Harness，官方包含而插件不包含；③ 精确对账可导出官方月度账单 CSV 对比。检测到中断调用时，横幅额外以红字显示「当前记录中有 N 次中断调用（未计费）」。
 - **价格表**：**DeepSeek 官方 API 价格表**（覆盖官方模型 `deepseek-v4-flash` / `deepseek-v4-flash-vision-exp` / `deepseek-v4-pro`），展示基础价与峰谷价（高峰/空闲）单价表，高峰价与空闲价分列展示，支持在面板内直接编辑价格并持久化（数据目录 `pricing.json`），也可一键恢复默认。
-- **剩余余额查询**：用当前配置的 `DEEPSEEK_API_KEY` 查询 DeepSeek 账户余额；并支持 **百炼 Token Plan 配额查询**（复用 `bl auth login --console` 的控制台 OAuth token，无需阿里云 AccessKey，展示本周配额已用百分比与重置时间）。
+- **剩余余额查询**（**本 fork 默认关闭**：本机没有配置 DeepSeek 供应商，面板固定拿失效的 `DEEPSEEK_API_KEY` 请求、一打开就报 401。开关在 `lib/client.js` 的 `ENABLE_BALANCE_PANEL`）：用当前配置的 `DEEPSEEK_API_KEY` 查询 DeepSeek 账户余额；并支持 **百炼 Token Plan 配额查询**（复用 `bl auth login --console` 的控制台 OAuth token，无需阿里云 AccessKey，展示本周配额已用百分比与重置时间）。
 - **导出**：CSV / JSON / **PNG 长图**（按最新在前展示，最多含最近 2000 条，超出会提示；PNG 报告含高峰 / 空闲消耗分列统计），可导出到任意目录（原生目录选择器），导出后自动打开所在目录。
 - **导入**：选择文件（JSON / CSV）合并导入，按时间去重。
 - **持久化**：记录实时落盘到**固定专用数据目录**（如 `%LOCALAPPDATA%\dsh-usage-plugin\dsh-usage\usage-records.json`，详见下文「数据目录」），与当前工作区无关，重启自动恢复（上限 100000 条，尽量多存）。
