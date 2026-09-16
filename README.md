@@ -2,9 +2,20 @@
 
 # DeepSeek Harness Usage & Cost Tracker (dsh-usage-plugin)
 
+> **This repository is our own maintenance line, not the upstream package.**
+> It is developed at [vb2250158/dsh-usage-plugin](https://github.com/vb2250158/dsh-usage-plugin),
+> independently of [feiyang-dev/dsh-usage-plugin](https://github.com/feiyang-dev/dsh-usage-plugin)
+> (kept as the `upstream` remote for reference). The package name is the un-scoped
+> `dsh-usage-plugin`, and it installs straight from this repository by pinned commit —
+> nothing is published to npm:
+>
+> ```sh
+> dsh plugin --profile web add github:vb2250158/dsh-usage-plugin#<commit>
+> ```
+
 **English** · [简体中文](./README.zh.md)
 
-[GitHub](https://github.com/feiyang-dev/dsh-usage-plugin) · [npm](https://www.npmjs.com/package/@feiyang666/dsh-usage-plugin) · MIT License
+[GitHub](https://github.com/vb2250158/dsh-usage-plugin) · [upstream](https://github.com/feiyang-dev/dsh-usage-plugin) · MIT License
 
 **A community plugin for DeepSeek Harness** — records token usage and cost for every model call, with peak/off-peak billing, balance query, a calendar heatmap, and CSV / JSON / PNG export.
 
@@ -50,9 +61,9 @@
 
 > ## 🔔 Important Notice (2026-08-16): npm package renamed
 >
-> The **npm package has been renamed from `@feiyang666/deepseekharnessdesktop` to `@feiyang666/dsh-usage-plugin`** (matching the GitHub repo `feiyang-dev/dsh-usage-plugin`).
+> The **npm package has been renamed from `@feiyang666/deepseekharnessdesktop` to `dsh-usage-plugin`** (matching the GitHub repo `feiyang-dev/dsh-usage-plugin`).
 >
-> - Use the new package name for install / upgrade: `dsh plugin --profile web add @feiyang666/dsh-usage-plugin`
+> - Use the new package name for install / upgrade: `dsh plugin --profile web add dsh-usage-plugin`
 > - The old package `@feiyang666/deepseekharnessdesktop` remains published for a while, but it is **no longer maintained and will not receive updates** — please migrate soon.
 > - The desktop client ([`DeepSeek Harness Desktop`](https://github.com/feiyang-dev/DeepSeek-Harness-Desktop)) supports both package names and will auto-detect old-name installs with a **one-click update** to the new name.
 
@@ -103,14 +114,14 @@ Install [DeepSeek Harness Desktop](https://github.com/feiyang-dev/DeepSeek-Harne
 
 ```bash
 # Prerequisite: install dsh (npm install -g @deepseek-ai/dsh)
-dsh plugin --profile web add @feiyang666/dsh-usage-plugin
+dsh plugin --profile web add dsh-usage-plugin
 ```
 
 Or install to another profile:
 
 ```bash
-dsh plugin --profile web add @feiyang666/dsh-usage-plugin
-dsh plugin --profile headless add @feiyang666/dsh-usage-plugin
+dsh plugin --profile web add dsh-usage-plugin
+dsh plugin --profile headless add dsh-usage-plugin
 ```
 
 Restart the dsh web service after installation. Detailed manual install / wiring / uninstall / troubleshooting follows below.
@@ -143,7 +154,7 @@ So for users, **installation is one command** — no YAML editing, no manual fil
 ### 1. Method A (recommended): one command
 
 ```bash
-dsh plugin --profile web add @feiyang666/dsh-usage-plugin
+dsh plugin --profile web add dsh-usage-plugin
 ```
 
 This does three things (all automatic):
@@ -164,7 +175,7 @@ Only for when you have no pnpm or want full manual control. **Do not `npm instal
 
 ```bash
 cd ~/.dsh/profiles/web
-pnpm add @feiyang666/dsh-usage-plugin
+pnpm add dsh-usage-plugin
 # then manually append the plugin row to web/cordis.patch.yml (see B3) and restart
 ```
 
@@ -174,7 +185,7 @@ pnpm add @feiyang666/dsh-usage-plugin
 cd ~/.dsh/profiles/web
 # if no package.json exists there yet (only after `dsh plugin` init):
 # echo '{"name":"dsh-profile-web","private":true,"dependencies":{}}' > package.json
-npm install @feiyang666/dsh-usage-plugin
+npm install dsh-usage-plugin
 ```
 
 **B3. Wire it up (once, idempotent):** append to `~/.dsh/profiles/web/cordis.patch.yml`:
@@ -182,7 +193,7 @@ npm install @feiyang666/dsh-usage-plugin
 ```yaml
 - insert:
     - id: usage-plugin
-      name: '@feiyang666/dsh-usage-plugin'
+      name: 'dsh-usage-plugin'
       inject:
         - fs
         - webServer
@@ -195,7 +206,7 @@ npm install @feiyang666/dsh-usage-plugin
 Or just run the package's built-in wiring script (auto-finds the profile and appends, idempotent):
 
 ```bash
-node node_modules/@feiyang666/dsh-usage-plugin/scripts/wire.js
+node node_modules/dsh-usage-plugin/scripts/wire.js
 ```
 
 > ⚠️ The `inject` list is **required**: it makes Cordis wait until `fs` / `webServer` / `subprocess` / `credentials` / `sandboxPolicy` / `agents` are ready before activating the plugin. Without it the `/usage/api` route never registers and the panel fails with `Unexpected end of JSON input`.
@@ -221,7 +232,7 @@ Restart the DeepSeek Harness web app (command line: kill the old process and re-
 ## Uninstall
 
 ```bash
-dsh plugin --profile web remove @feiyang666/dsh-usage-plugin
+dsh plugin --profile web remove dsh-usage-plugin
 ```
 
 (Equivalent to pnpm remove; `dsh plugin` auto-removes the package name from the `dsh.profile.bundles` layer list.) Restart the app afterward.
@@ -243,14 +254,14 @@ Open **"Install Plugins"** → find **Usage & Cost Tracker** → click **Update*
 Re-running `add` is idempotent and pulls the newest version:
 
 ```bash
-dsh plugin --profile web add @feiyang666/dsh-usage-plugin
+dsh plugin --profile web add dsh-usage-plugin
 dsh web   # restart
 ```
 
 Pin a specific version:
 
 ```bash
-dsh plugin --profile web add @feiyang666/dsh-usage-plugin@1.9.3
+dsh plugin --profile web add dsh-usage-plugin@1.9.3
 ```
 
 ### Manual install (Method B)
@@ -258,15 +269,15 @@ In the profile dir:
 
 ```bash
 cd ~/.dsh/profiles/web
-pnpm update @feiyang666/dsh-usage-plugin   # or: npm update @feiyang666/dsh-usage-plugin
+pnpm update dsh-usage-plugin   # or: npm update dsh-usage-plugin
 ```
 
 ### Verify the installed version
 ```bash
-npm ls @feiyang666/dsh-usage-plugin --prefix ~/.dsh/profiles/web
+npm ls dsh-usage-plugin --prefix ~/.dsh/profiles/web
 ```
 
-> ⚠️ **Do not hand-edit files under `~/.dsh/profiles/web/node_modules/@feiyang666/dsh-usage-plugin/`** (e.g. `lib/index.js` / `lib/client.js`). Every update re-extracts the package from npm and overwrites those files, so local edits are silently lost. To change behavior, fork the repo and publish your own version, or contribute upstream.
+> ⚠️ **Do not hand-edit files under `~/.dsh/profiles/web/node_modules/dsh-usage-plugin/`** (e.g. `lib/index.js` / `lib/client.js`). Every update re-extracts the package from npm and overwrites those files, so local edits are silently lost. To change behavior, fork the repo and publish your own version, or contribute upstream.
 
 ---
 

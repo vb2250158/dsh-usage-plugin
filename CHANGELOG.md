@@ -1,10 +1,41 @@
 # 更新日志 / Changelog
 
-`@feiyang666/dsh-usage-plugin` — DeepSeek Harness 用量与消耗插件
+`dsh-usage-plugin` — DeepSeek Harness 用量与消耗插件（本机 fork，原 `@feiyang666/dsh-usage-plugin`）
 
 本文件按版本记录每一次更新的详细内容（新功能 / 优化 / 修复 / 界面 / 性能）。每次发布到 GitHub 时，请据此填写「版本发布」（GitHub Releases）的更新说明。
 
 > 版本规范：本插件按「语义化版本」递增，`主.次.补丁`。功能新增/界面变化 → 升次版本（x.y.x → x.y+1.0）；仅 bug 修复 → 升补丁。
+
+---
+
+## v1.21.0 (2026-09-16) — 包名改回自有命名，脱离上游身份
+
+### 变更 / Changes
+
+- **npm 包名由 `@feiyang666/dsh-usage-plugin` 改为 `dsh-usage-plugin`**。那个 scope 是原作者的
+  个人账号，而这份 fork 早已由我们独立维护（仓库 `vb2250158/dsh-usage-plugin`、自有价格表、
+  自有本地化与界面改动）。继续挂着别人的 scope，只会让「改的是谁的插件」说不清；本机其它
+  插件（`dsh-opencode-go-usage`、`dsh-chat-enhancement`）都是无 scope 命名，现在这里也一致了。
+
+- **仓库同时脱离 GitHub fork 网络**（Settings → Danger Zone → Leave fork network），提交历史保留。
+  `package.json` 的 `dsh.upstreamRepository` 与 `upstream` remote 照旧指向
+  `feiyang-dev/dsh-usage-plugin` —— 上游归属与后续合并能力都还在，只是不再算「分叉」。
+
+### 升级 / Upgrade
+
+包身份变了，profile 的依赖键随之改变（`@feiyang666/dsh-usage-plugin` → `dsh-usage-plugin`）。
+本机按共享清单重新 Import 即可：同步器会移除旧键、写入新键，无需手工改文件。
+
+- **用量数据不受影响**：记录与导出目录用的是 `dsh-usage` / `dsh-usage-data`，名称里没有包名。
+- `cordis.patch.yml` 的行 id 仍是 `usage-plugin`，`/usage/api` 路由、设置页「用量与消耗」入口、
+  各类 slot 注册 id 全部不变。
+
+### 备注 / Notes
+
+- 客户端模块 id（`lib/client.js` 的 `window.__ModuleLoader__.load({ id })`）同步改名，浏览器会按
+  新 id 重新加载，不会命中旧的模块缓存。
+- 命名对账：私库 `config/plugins.json` 的 `name` 与 `dsh-environment-sync` 的 `catalog.json`
+  `packageName` 必须等于 package.json 的 `name`，两处一并同步。
 
 ---
 

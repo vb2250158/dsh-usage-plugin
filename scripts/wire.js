@@ -4,7 +4,7 @@
  * PREFERRED INSTALL: this package declares `dsh.bundle`, so it auto-activates
  * with a single command and NO manual wiring:
  *
- *   dsh plugin --profile web add @feiyang666/dsh-usage-plugin
+ *   dsh plugin --profile web add dsh-usage-plugin
  *
  * This script exists only for the manual fallback path (installing the package
  * by hand into a profile's node_modules): it appends the plugin row to the
