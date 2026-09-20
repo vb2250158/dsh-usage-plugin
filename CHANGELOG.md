@@ -8,6 +8,11 @@
 
 ---
 
+## v1.21.3 (2026-09-20)
+
+- 移除消息底部重复的 token 用量入口，保留宿主的本轮用量明细和插件的「用量与消耗」统计页。
+- Remove the duplicate message-footer token action; retain the host turn-usage details and the plugin Usage & Cost pages.
+
 ## v1.21.2 (2026-09-16) — 修掉弹窗一展开就崩，并把渲染逻辑提成可测的纯函数
 
 ### 修复 / Fixes

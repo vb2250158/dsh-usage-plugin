@@ -62,11 +62,10 @@ test('the balance panel registers nothing while its switch is off', async () => 
     '余额面板的两个入口（conversation.view:balance-view 与 settings.section:balance）都不应注册')
 })
 
-test('the three usage entries still register, in order', async () => {
+test('usage pages register without duplicating the host turn-usage action', async () => {
   const exports = await loadClient()
   assert.deepEqual(collectRegistrations(exports), [
     'conversation.view:usage-cost-view',
-    'settings.section:usage-cost',
-    'conversation.chat.assistant-actions:usage-token'
+    'settings.section:usage-cost'
   ])
 })
