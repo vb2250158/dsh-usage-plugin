@@ -1,6 +1,6 @@
 {
   "name": "dsh-usage-plugin",
-  "version": "1.21.4",
+  "version": "1.21.5",
   "description": "DeepSeek Harness usage & cost tracker plugin, forked to price any model via the OpenRouter catalog: per-call token/cache-hit stats, cache-aware cost, CSV/JSON/PNG export with custom destination, and persistent local storage. Ships a host half plus a web client half in one npm package; installs into a DSH profile as a dsh.bundle with one command (dsh plugin --profile web add github:vb2250158/dsh-usage-plugin#<sha>).",
   "keywords": [
     "deepseek",
@@ -88,7 +88,7 @@
     "pack": "npm pack"
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/cordis": ">=4.0.5-alpha.1 <5.0.0",
     "@deepseek-ai/dsh-api-remotes": ">=0.2.1-alpha.1 <0.3.0",
     "@deepseek-ai/dsh-api-session-controller": ">=0.2.1-alpha.1 <0.3.0",
     "@deepseek-ai/dsh-client-ui-renderer": ">=0.2.1-alpha.1 <0.3.0",
