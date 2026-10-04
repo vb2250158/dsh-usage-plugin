@@ -1,5 +1,9 @@
 # 更新日志 / Changelog
 
+## 1.21.4
+
+- Update DSH compatibility requirements and interfaces for 0.2.1-alpha.1.
+
 `dsh-usage-plugin` — DeepSeek Harness 用量与消耗插件（本机 fork，原 `@feiyang666/dsh-usage-plugin`）
 
 本文件按版本记录每一次更新的详细内容（新功能 / 优化 / 修复 / 界面 / 性能）。每次发布到 GitHub 时，请据此填写「版本发布」（GitHub Releases）的更新说明。
