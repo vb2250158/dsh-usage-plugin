@@ -14,7 +14,7 @@
 
 [English](./README.md) | **简体中文**
 
-设置中的“使用情况统计”包含“用量与消耗”标签；同时安装 `dsh-usage-analytics` 1.2.0 或更新版本时增加“Skill 使用”标签。切换标签保留已选日期、页面和搜索状态，隐藏页暂停自动刷新。对话中的“用量与消耗”视图保持原有入口。
+设置中的“使用情况统计”包含“用量与消耗”标签；同时安装 `dsh-usage-analytics` 1.2.0 或更新版本时增加“Skill 使用”标签。切换标签保留已选日期、页面和搜索状态，隐藏页暂停自动刷新。点击会话链接打开对应对话并关闭设置。对话中的“用量与消耗”视图保持原有入口。
 
 其他统计插件可通过公开 `settings.usage-statistics.tab`（list、root）贡献页面，声明 `id`、`order` 和本地化 `label`，使用 `slots.inject` 后 `slots.register`。父页通过 `renderSlot` 传入 `close` 与 `active`；页面在 `active: false` 时停止轮询，不创建额外弹窗。TypeScript 消费方可使用 `import type {} from 'dsh-usage-plugin/usage-statistics-slots'` 获取唯一的槽声明。
 

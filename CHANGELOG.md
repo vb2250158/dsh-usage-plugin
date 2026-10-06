@@ -1,5 +1,12 @@
 # 更新日志 / Changelog
 
+## 1.22.1 (2026-10-06)
+
+- 会话链接使用 DSH 0.2 的官方 `uiWorkspace.openSession` 导航，并声明所需客户端服务；从统计页面跳转后关闭设置。
+- Session links use DSH 0.2's public Workspace navigation service and close Settings after opening the conversation. Declare the required client service in the package and plugin metadata.
+- 显式等待浏览器 Timer 服务激活，保证页面自动刷新不依赖插件加载顺序。
+- Require the browser Timer service before mounting usage pages so automatic refresh does not depend on plugin load order.
+
 ## 1.22.0 (2026-10-06)
 
 - 设置入口改为“使用情况统计”，在“用量与消耗”和“Skill 使用”标签中组合两个插件的页面；用量图表、日期筛选、导出和会话跳转保持可用。
