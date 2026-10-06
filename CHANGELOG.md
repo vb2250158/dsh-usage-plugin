@@ -1,5 +1,12 @@
 # 更新日志 / Changelog
 
+## 1.22.0 (2026-10-06)
+
+- 设置入口改为“使用情况统计”，在“用量与消耗”和“Skill 使用”标签中组合两个插件的页面；用量图表、日期筛选、导出和会话跳转保持可用。
+- Settings now opens Usage statistics with Usage & Cost and Skill usage tabs. Existing charts, date filters, exports and session navigation remain available.
+- 公开 `settings.usage-statistics.tab` 子槽；已访问标签保留本地界面状态，隐藏页暂停轮询。独立安装时仍可查看用量。
+- Publish the feature-owned tab slot; retain visited pages and pause hidden-page polling. Usage remains available without the Skill statistics plugin.
+
 ## 1.21.5
 
 - Align maintenance lockfiles and peer versions with the DSH 0.2 runtime.

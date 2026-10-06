@@ -77,6 +77,9 @@ test('language follows the host locale service (system settings), live', async (
     subscribe: fn => { listeners.push(fn); return () => {} }
   }
   const ctx = {
+    locale,
+    slots: { inject: () => {}, register: () => {} },
+    effect: fn => fn(),
     get: name => name === 'locale' ? locale : name === 'slots' ? { inject: () => {}, register: () => {} } : undefined,
     on: () => {}
   }
@@ -104,6 +107,9 @@ test('a stale dsh-usage-lang localStorage value no longer overrides the host loc
     subscribe: () => () => {}
   }
   const ctx = {
+    locale,
+    slots: { inject: () => {}, register: () => {} },
+    effect: fn => fn(),
     get: name => name === 'locale' ? locale : name === 'slots' ? { inject: () => {}, register: () => {} } : undefined,
     on: () => {}
   }

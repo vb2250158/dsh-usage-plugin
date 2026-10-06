@@ -15,6 +15,10 @@
 
 **English** · [简体中文](./README.zh.md)
 
+Settings now opens **Usage statistics** with a **Usage & Cost** tab. Installing `dsh-usage-analytics` 1.2.0 or later adds **Skill usage**. Switching tabs preserves visited pages, date selections and search state; hidden pages pause automatic refresh. The conversation Usage & Cost view retains its existing entry.
+
+Other statistics plugins can contribute to the public `settings.usage-statistics.tab` list/root slot through `slots.inject` and `slots.register`, supplying `id`, `order` and a localized `label`. The parent supplies `close` and `active` through `renderSlot`; pages stop polling when inactive and render without another modal. TypeScript consumers can import the single slot declaration with `import type {} from 'dsh-usage-plugin/usage-statistics-slots'`.
+
 [GitHub](https://github.com/vb2250158/dsh-usage-plugin) · [upstream](https://github.com/feiyang-dev/dsh-usage-plugin) · MIT License
 
 **A community plugin for DeepSeek Harness** — records token usage and cost for every model call, with peak/off-peak billing, balance query, a calendar heatmap, and CSV / JSON / PNG export.

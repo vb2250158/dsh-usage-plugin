@@ -45,7 +45,10 @@ function collectRegistrations(exports) {
     }
   }
   const ctx = {
-    // timer / locale / sessions 一律缺席：注册路径不应该依赖它们
+    slots,
+    locale: { getLocale: () => ({ active: 'en' }), getSnapshot: () => ({ active: 'en', revision: 0 }), subscribe: () => () => {} },
+    effect: fn => fn(),
+    // timer / sessions 缺席不影响注册。
     get(name) { return name === 'slots' ? slots : undefined },
     on() {}
   }
@@ -66,6 +69,7 @@ test('usage pages register without duplicating the host turn-usage action', asyn
   const exports = await loadClient()
   assert.deepEqual(collectRegistrations(exports), [
     'conversation.view:usage-cost-view',
+    'settings.usage-statistics.tab:usage-cost',
     'settings.section:usage-cost'
   ])
 })
