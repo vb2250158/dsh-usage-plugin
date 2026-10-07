@@ -1,5 +1,10 @@
 # 更新日志 / Changelog
 
+## 1.23.3 (2026-10-07)
+
+- 趋势图按 Canvas 实测日期文字宽度选择横轴刻度，优先保留首尾日期，避免末尾相邻日期重叠或越出绘图区。
+- Select trend-axis date ticks by measured text width, reserve endpoint labels and keep dates inside the plot.
+
 ## 1.23.2 (2026-10-07)
 
 - 图表文字与网格读取宿主主题 token，提升浅色主题可读性；次级导航使用当前页语义，避免与主题的切换按钮样式冲突。修正会话排行重复的 Token 单位。保留已发布的紧凑插件图标。

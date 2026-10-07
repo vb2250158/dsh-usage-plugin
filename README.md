@@ -377,3 +377,5 @@ The statistics page uses host theme tokens and responsive metrics. It presents c
 The icon uses a centered 36 × 36 viewBox to leave more space around the artwork inside the plugin icon frame.
 
 Chart labels and grids use the host theme tokens in both appearances. The overview navigation marks the current page with aria-current.
+
+Trend date ticks use measured text widths, retaining both endpoint dates when they fit without overlapping.
