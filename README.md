@@ -371,4 +371,7 @@ MIT © dsh-usage-plugin
 
 The plugin list shows **Usage statistics** in English and **使用情况统计** in Chinese, following the DSH interface language. `locale/en.json` and `locale/zh.json` provide the title and description; `icon.svg` supplies self-contained artwork. The package exports and publishes these resources. The icon is adapted from Lucide; see [ICON_LICENSE.txt](ICON_LICENSE.txt).
 
+
+The statistics page uses host theme tokens and responsive metrics. It presents cost, calls and cache-hit rate for the selected range, followed by trends and model share. Monthly totals have a separate label. Token and billing-period details and data management expand on demand; clearing records requires confirmation. The trend chart has its own time window, while model share follows the selected range.
+
 The icon uses a centered 36 × 36 viewBox to leave more space around the artwork inside the plugin icon frame.

@@ -1,9 +1,15 @@
 # 更新日志 / Changelog
 
-## 1.22.3 (2026-10-07)
+## 1.23.1 (2026-10-07)
 
-- 缩小图标绘制内容约三分之一，增加方框内的留白。
-- Reduce icon artwork by one third with a centered, padded viewBox.
+- 保留新版统计面板，并缩小插件图标约三分之一。
+- Preserve the new statistics dashboard and reduce plugin icon artwork by one third.
+
+## 1.23.0 (2026-10-07)
+
+- 重排统计页面：所选范围、核心指标、趋势与模型占比优先，本月摘要和明细分开呈现。使用宿主主题色、标准筛选组件与响应式布局。
+- 简化重复 Token 卡片，将明细、导出和数据管理折叠展示；清空记录增加确认与取消。
+- Reorganize statistics around the selected range, key metrics and charts, with separately labeled monthly context. Use host theme tokens and standard controls, reduce duplicate Token cards, and confirm before clearing records.
 
 ## 1.22.2 (2026-10-07)
 
