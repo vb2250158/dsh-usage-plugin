@@ -1,5 +1,10 @@
 # 更新日志 / Changelog
 
+## 1.22.3 (2026-10-07)
+
+- 缩小图标绘制内容约三分之一，增加方框内的留白。
+- Reduce icon artwork by one third with a centered, padded viewBox.
+
 ## 1.22.2 (2026-10-07)
 
 - 为插件列表提供中英文名称与说明，并发布独立的 SVG 图标。
