@@ -1,5 +1,10 @@
 # 更新日志 / Changelog
 
+## 1.22.2 (2026-10-07)
+
+- 为插件列表提供中英文名称与说明，并发布独立的 SVG 图标。
+- Publish English and Chinese plugin display metadata and a dedicated SVG icon.
+
 ## 1.22.1 (2026-10-06)
 
 - 会话链接使用 DSH 0.2 的官方 `uiWorkspace.openSession` 导航，并声明所需客户端服务；从统计页面跳转后关闭设置。
