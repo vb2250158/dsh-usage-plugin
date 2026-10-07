@@ -375,3 +375,5 @@ The plugin list shows **Usage statistics** in English and **使用情况统计**
 The statistics page uses host theme tokens and responsive metrics. It presents cost, calls and cache-hit rate for the selected range, followed by trends and model share. Monthly totals have a separate label. Token and billing-period details and data management expand on demand; clearing records requires confirmation. The trend chart has its own time window, while model share follows the selected range.
 
 The icon uses a centered 36 × 36 viewBox to leave more space around the artwork inside the plugin icon frame.
+
+Chart labels and grids use the host theme tokens in both appearances. The overview navigation marks the current page with aria-current.

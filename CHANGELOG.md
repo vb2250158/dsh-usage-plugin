@@ -1,5 +1,10 @@
 # 更新日志 / Changelog
 
+## 1.23.2 (2026-10-07)
+
+- 图表文字与网格读取宿主主题 token，提升浅色主题可读性；次级导航使用当前页语义，避免与主题的切换按钮样式冲突。修正会话排行重复的 Token 单位。保留已发布的紧凑插件图标。
+- Read chart label and grid colors from host theme tokens, separate page navigation from toggle styling, and remove the duplicate Token unit in conversation rankings. Retain the compact plugin icon.
+
 ## 1.23.1 (2026-10-07)
 
 - 保留新版统计面板，并缩小插件图标约三分之一。
