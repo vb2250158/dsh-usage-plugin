@@ -1,5 +1,10 @@
 # 更新日志 / Changelog
 
+## 1.23.5 (2026-10-20)
+
+- Keep price snapshots in the host observer scope. Stream completion and search-event recording no longer raise a ReferenceError or mask the original provider error.
+- 修复价格快照函数误嵌套：模型流结束和搜索调用统计不再抛出 ReferenceError，也不会掩盖原始服务商错误。
+
 ## 1.23.4 (2026-10-20)
 
 - Merge upstream atomic persistence, stable record identity, captured prices and search-backend call estimates. Keep the universal USD catalog and themed dashboard. Prices are captured for new calls; historical records without a compatible currency snapshot retain the existing pricing behavior. Explicit repricing clears snapshots. Estimated records are labeled in tables and PNG exports in both languages.

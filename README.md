@@ -426,3 +426,5 @@ The icon uses a centered 36 × 36 viewBox to leave more space around the artwork
 Chart labels and grids use the host theme tokens in both appearances. The overview navigation marks the current page with aria-current.
 
 Trend date ticks use measured text widths, retaining both endpoint dates when they fit without overlapping.
+
+Host observer regression coverage executes the real plugin in an isolated child process, including completed streams, upstream errors, search events and price changes.
