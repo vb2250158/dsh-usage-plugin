@@ -67,6 +67,16 @@ test('dates and weekdays follow locale rules', async () => {
   i.setLang('en')
 })
 
+test('estimated call status remains visible in both locales', async () => {
+  const { exports } = await loadClient()
+  const i = exports.__i18n
+  i.setLang('en')
+  assert.equal(i.recordStatus({ estimated: true, finishReason: 'stop' }), 'Estimated · Done')
+  assert.equal(i.recordStatus({ finishReason: 'stop' }), 'Done')
+  i.setLang('zh')
+  assert.equal(i.recordStatus({ estimated: true, finishReason: 'stop' }), '估算 · 完成')
+})
+
 test('language follows the host locale service (system settings), live', async () => {
   const { exports } = await loadClient()
   const i = exports.__i18n

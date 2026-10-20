@@ -1,5 +1,9 @@
 <div align="center">
 
+New calls capture their catalog prices. Search-backend records carry an Estimated label in tables and PNG exports. The maintained universal USD catalog and themed dashboard remain available; explicit repricing clears captured prices.
+
+新增调用保存当时的目录价格；搜索后端估算记录在表格和图片导出中明确标记。保留通用美元目录与当前面板，显式重计价会清除价格快照。
+
 # DeepSeek Harness Usage & Cost Tracker (dsh-usage-plugin)
 
 > **This repository is our own maintenance line, not the upstream package.**
@@ -85,7 +89,7 @@ dsh-usage-plugin is a **usage & cost tracker** plugin in the DeepSeek Harness ec
 - **Cache Hit List**: newest-first, fully scrollable, with quick filters (Today / 7 days / 30 days / All) and custom date ranges; the summary line and footer total split peak vs off-peak consumption with a grand cost total. The list is paginated (100 rows per page), so it stays smooth even with large data volumes.
 - **Interrupted calls shown truthfully**: calls that were aborted / errored / timed out (e.g. manually stopped generation, stream interruption) are shown with a red **"Interrupted"** badge, the finish reason (Interrupted / Error / Timeout) and a `—` cost. The official console still counts these as API requests and bills their actual tokens, but the harness does not report their usage to the plugin — so the plugin records them at 0 tokens, keeping the **call count aligned with the official console** while costs are unaffected. The Overview's "Calls" card adds a `· interrupted N (not billed)` hint.
 - **Local stats vs official console**: a fixed notice banner at the top of the panel explains that this panel reflects calls captured locally by the plugin (official prices + peak/off-peak hours), and that the official console (platform.deepseek.com usage page) may show a higher amount because: ① interrupted/failed/timed-out calls are still billed by the console while the plugin records them as 0; ② calls from other API keys on your account (other apps/scripts) do not pass through DeepSeek Harness — the console includes them, the plugin does not; ③ for exact reconciliation, export the official monthly billing CSV and compare. When interrupted calls are detected, the banner also shows a red "Current records include N interrupted call(s) (not billed)" line.
-- **Price Table**: the official DeepSeek API price table (covering `deepseek-v4-flash` / `deepseek-v4-flash-vision-exp` / `deepseek-v4-pro`) — base and peak/valley unit prices shown side by side (peak vs off-peak), editable in-panel and persisted to `pricing.json`, with a reset-to-default option.
+- **Price Table**: the official DeepSeek API price table (covering `deepseek-flash` = DeepSeek-V4.1-Flash and `deepseek-v4-pro`; the legacy ids `deepseek-v4-flash` / `deepseek-v4-flash-vision-exp` stay callable and fold into the Flash tier) — base and peak/valley unit prices shown side by side (peak vs off-peak). The peak/off-peak tables are date-split: the first version applies from 2026-08-17, and the **post-V4.1-Flash version** applies from 2026-09-10 12:00 Beijing time (`deepseek-flash` off-peak lowered to cache hit 0.02 / input 1 / output 4 CNY, peak at twice that; `deepseek-v4-pro` unchanged) — past calls are always billed with the version in force at their own time. Editable in-panel and persisted to `pricing.json`, with a reset-to-default option.
 - **Balance Query**: queries your DeepSeek account balance using the configured `DEEPSEEK_API_KEY`.
 - **Export**: CSV / JSON / **PNG long image** (newest-first, up to the latest 2000 records, warns if exceeded; the PNG report includes peak/off-peak cost columns), to any directory (native picker), auto-opens the folder after export.
 - **Import**: merge-imports JSON / CSV files, deduplicated by time.
@@ -297,11 +301,53 @@ npm ls dsh-usage-plugin --prefix ~/.dsh/profiles/web
     4. **fallback (rare)**: current workspace `<workspace>/dsh-usage` — only used when all system/user dirs above are unwritable, and the panel will show a "persistence disabled" warning.
   - **Writes bypass the model sandbox**: persistence is done by the host plugin process's own filesystem, not subject to the `workspace-write` sandbox, so the fixed directory is always writable and data is not lost when switching workspaces.
   - Default on Windows: `%LOCALAPPDATA%\dsh-usage-plugin\dsh-usage\usage-records.json`
-- **Legacy data auto-merge**: on first start, records previously scattered in `%USERPROFILE%\dsh-usage`, `~/.dsh/dsh-usage`, and each workspace's `dsh-usage` (or `.dsh-usage-records.json`) are merged into the fixed root, deduplicated by `time` — no manual migration needed.
+- **Legacy data auto-merge**: on first start, records previously scattered in `%USERPROFILE%\dsh-usage`, `~/.dsh/dsh-usage`, and each workspace's `dsh-usage` (or `.dsh-usage-records.json`) are merged into the fixed root, deduplicated by **record identity** — the `recordId` of new records, or a composite fingerprint (session + timestamp + model + purpose + four token buckets + finish reason) for legacy ones. This is no longer a millisecond-only comparison, so two different requests inside the same millisecond no longer overwrite each other. **Records written by older versions stay fully readable**: missing `recordId` / `pricingTime` / `unit` and friends are all optional.
+- **Writes are atomic**: a temporary file in the same directory is written, flushed, and then atomically renamed over the target; a failure leaves the existing file untouched.
+- **A corrupt file is never silently zeroed**: if the data file exists but cannot be parsed, the plugin no longer treats it as empty data (older versions did — and then overwrote the whole history with that empty array). It renames the original to `usage-records.json.corrupt-<timestamp>.json` and keeps starting, so the data can be recovered by hand.
 - Price config (edited & saved in the panel): `<data root>/dsh-usage/pricing.json`
 - Default export dir: `<data root>/dsh-usage/{csv,json,images}/`
 - Custom export dir: set in the panel's "Export target directory" or click "Choose directory…"
 - Startup diagnostics (if the plugin fails to activate): `dsh-usage-boot.log` next to the data root
+
+---
+
+## Metering scope
+
+Usage and cost here are **recorded call by call from DeepSeek Harness `llm/stream` events**, plus a `session/event` listener for search-backend requests. Read the boundaries below before relying on the numbers.
+
+### Precisely metered (provider-reported values)
+
+| Source | Notes |
+| --- | --- |
+| Main agent conversation | Four token buckets, cache-hit counts and finish reason per call |
+| Session-title generation | `purpose: session-title` |
+| Context compaction | `purpose: compaction` |
+| In-process subagents | They share the main agent's `ctx.llm`, so they are intercepted too |
+
+The billing formula matches the official one: `uncached input × miss price + cache hit × hit price + output × output price`. There is **no separate cache-write price** (DeepSeek never reports that field; writing to cache is charged at the miss price), and `reasoning` is already included in `output`, so it is never billed twice.
+
+### Not precisely metered (flagged separately in the UI)
+
+| Source | Why it is unreachable | What the plugin does |
+| --- | --- | --- |
+| **DeepSeek search backend calls from `web_search`** | `web-search-deepseek` issues a native `fetch` straight to `api.deepseek.com/anthropic/v1/messages` inside the Harness, deliberately bypassing `ctx.llm`; upstream only persists the **request** (`web/deepseek-search-llm-request`) and **discards the response usage entirely** (its response type does not even declare a usage field). No data source exposes this spend. | Records the **exact call count** and derives a **lower bound** for the input side from the request body, all flagged `estimated`. The output side is never guessed. The overview shows "estimated cost ≥ ¥X (N calls)". |
+| External CLI subagents (claude-code / codex) | Separate child processes, fully outside `ctx.llm`, emitting no events | Not counted |
+| Output produced before an aborted request | The adapter emits no usage chunk on abort | Recorded as a zero-token "interrupted call" so the call count still matches the console |
+| Official billing counts HTTP requests; the plugin counts streams | Harness-level retries do not open a new stream | Call counts may differ from the official `request_count` |
+
+### Bottom line
+
+- For ordinary chat / coding workloads the plugin's total tracks the official bill closely;
+- **With heavy `web_search` use the plugin's total is materially lower than the official bill** — the gap is the search backend, and the panel says so explicitly;
+- In all cases, **the DeepSeek console bill is authoritative**.
+
+### Past prices are never rewritten
+
+Each record **freezes the three unit prices in effect when it was written** (its `unit` field). Therefore:
+
+- Editing the price table afterwards (from the panel or by hand in `pricing.json`) **only affects future records**; past costs are not recomputed;
+- Records written by older versions or imported by hand have no frozen snapshot, so their cost uses the **current** table and follows later edits — the overview and price pages report how many such records exist;
+- To deliberately reprice all history, use **"Reprice all history with the current table"** on the price page (or call API `{"action":"repriceAll"}`). That is the only entry point that rewrites historical cost.
 
 ---
 
@@ -356,8 +402,9 @@ pnpm dsh web
 - **[@ayleen](https://github.com/ayleen)**: implemented the full English UI layer (i18n) with reactive language switching, and moved balance presentation to semantic keys ([#7](https://github.com/feiyang-dev/dsh-usage-plugin/pull/7)).
 - **[@wuhuqif176](https://github.com/wuhuqif176)**: added the Bailian (Qwen) Token Plan quota query to the balance panel ([#8](https://github.com/feiyang-dev/dsh-usage-plugin/pull/8)).
 - **[@Martin-soaring-dev](https://github.com/Martin-soaring-dev)**: prepared the plugin for public contribution (packaging, plugin-contract checks, docs & CI) and submitted the contribution branch that became the basis for the open-source releases ([#6](https://github.com/feiyang-dev/dsh-usage-plugin/pull/6)).
-- **[@mumuer1024](https://github.com/mumuer1024)**: reported and diagnosed the persistence-path drift across workspaces (history "disappearing" / counted as 0) and proposed storing data in a fixed, dedicated directory ([#4](https://github.com/feiyang-dev/dsh-usage-plugin/issues/4)).
+- **[@mumuer1024](https://github.com/mumuer1024)**: reported and diagnosed the persistence-path drift across workspaces (history "disappearing" / counted as 0) and proposed storing data in a fixed, dedicated directory ([#4](https://github.com/feiyang-dev/dsh-usage-plugin/issues/4)); also reported that DeepSeek search-backend calls went unmetered and could understate cost by an order of magnitude, with a fully cross-checkable trail against the official bill ([#12](https://github.com/feiyang-dev/dsh-usage-plugin/issues/12)).
 - **[@liu3734](https://github.com/liu3734)**: reported and diagnosed the Windows-only path handling / spawn issues on macOS (POSIX) and proposed the cross-platform fix ([#1](https://github.com/feiyang-dev/dsh-usage-plugin/issues/1)).
+- **[@zhiqiangme](https://github.com/zhiqiangme)**: submitted a large PR adding history backfill and a sidebar balance entry ([#14](https://github.com/feiyang-dev/dsh-usage-plugin/pull/14)). Three of its findings — **the `cacheWriteTokens` fallback double-counting the four buckets, millisecond-only dedup overwriting records, and non-atomic writes silently zeroing a corrupt file** — became the basis for the v1.18.0 metering fixes (see [CHANGELOG](./CHANGELOG.md)).
 
 ## Changelog
 

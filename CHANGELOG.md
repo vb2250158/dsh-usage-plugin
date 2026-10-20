@@ -1,5 +1,10 @@
 # 更新日志 / Changelog
 
+## 1.23.4 (2026-10-20)
+
+- Merge upstream atomic persistence, stable record identity, captured prices and search-backend call estimates. Keep the universal USD catalog and themed dashboard. Prices are captured for new calls; historical records without a compatible currency snapshot retain the existing pricing behavior. Explicit repricing clears snapshots. Estimated records are labeled in tables and PNG exports in both languages.
+- 合入原子持久化、稳定记录标识、调用时价格快照和搜索后端估算记录；保留通用美元目录及当前面板。新记录冻结当时价格，旧记录维持原有计价；显式重计价会清除快照，估算记录在中英文表格与图片导出中显示标记。
+
 ## 1.23.3 (2026-10-07)
 
 - 趋势图按 Canvas 实测日期文字宽度选择横轴刻度，优先保留首尾日期，避免末尾相邻日期重叠或越出绘图区。
