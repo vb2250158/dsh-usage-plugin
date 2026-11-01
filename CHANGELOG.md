@@ -1,5 +1,11 @@
 # 更新日志 / Changelog
 
+## 1.24.0 (2026-11-01)
+
+- Adopt upstream v2.0.0 trend-chart date ticks (`trendDateTicks`, 8px spacing, endpoints first) and its `test/trend-ticks.test.js`; drop the fork's own tick layout.
+- Port upstream's `isDeepseekProvider` prefix match so `deepseek-account` (and any `deepseek-*`) is recognized; DeepSeek-provider records now resolve to the `deepseek/<model>` OpenRouter entry before generic name matching.
+- 采用 upstream v2.0.0 的趋势图日期刻度实现及其测试，移除 fork 自己的刻度逻辑；移植 upstream 的 provider 前缀识别，`deepseek-account` 等官方通道记录优先按 `deepseek/<模型>` 计价。
+
 ## 1.23.5 (2026-10-20)
 
 - Keep price snapshots in the host observer scope. Stream completion and search-event recording no longer raise a ReferenceError or mask the original provider error.
