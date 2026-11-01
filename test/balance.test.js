@@ -186,3 +186,12 @@ test('rejects a Qwen Token Plan response with no quota fields', () => {
   assert.equal(res.ok, false)
   assert.match(res.error, /没有可识别的配额字段/)
 })
+
+test('DeepSeek balance lookup recognizes deepseek-* model provider routes', () => {
+  assert.equal(matchesModelProvider('deepseek', 'deepseek', ''), true)
+  assert.equal(matchesModelProvider('deepseek', 'deepseek-account', ''), true)
+  assert.equal(matchesModelProvider('deepseek', 'custom-route', 'deepseek-official'), true)
+  assert.equal(matchesModelProvider('deepseek', 'siliconflow', ''), false)
+  assert.equal(matchesModelProvider('deepseek', 'mydeepseek', ''), false)
+  assert.equal(matchesModelProvider('siliconflow', 'deepseek-account', ''), false)
+})
