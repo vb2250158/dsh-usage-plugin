@@ -2,6 +2,8 @@
 
 ## 2.0.0-fork.1
 
+Unload now settles admitted price synchronization through its final history write before releasing the HTTP dispatcher, and rejects new writes after disposal starts.
+
 Merged upstream v2 calendar, multi-currency balance and in-process HTTP fixes. Added revision-based polling, projection/overview reuse and bounded price history. Retained the universal OpenRouter USD catalog, captured cache-write prices, customized statistics dashboard, skill slot and public session navigation. The upstream fixed CNY tariffs and replacement dashboard do not override these fork features.
 
 

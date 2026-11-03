@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {execFile} from 'node:child_process'
 import {promisify} from 'node:util'
-import {mkdtemp} from 'node:fs/promises'
+import {mkdtemp, rm} from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import {fileURLToPath,pathToFileURL} from 'node:url'
@@ -36,4 +36,18 @@ test('the mounted panel skips hidden/stable polls and reloads once for a new own
  await poll();assert.equal(actions.at(-1),'stat')
  instanceId='synthetic-host-b';await poll();assert.deepEqual(actions.slice(-2),['stat','list'])
  } finally { Date.now=actualNow }
+})
+
+test('unload settles a suspended price sync and rejects later writes', { timeout: 30000 }, async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'dsh-usage-dispose-'))
+  assert.equal(path.dirname(root), os.tmpdir())
+  try {
+    const { stdout } = await promisify(execFile)(process.execPath, [fileURLToPath(new URL('../test-support/host-dispose.mjs', import.meta.url)), root], {
+      cwd: root, timeout: 25000, windowsHide: true,
+      env: { ...process.env, USERPROFILE: path.join(root, 'home'), LOCALAPPDATA: path.join(root, 'Local'), APPDATA: path.join(root, 'Roaming'), DSH_USAGE_DATA_DIR: path.join(root, 'data') },
+    })
+    assert.deepEqual(JSON.parse(stdout), { admittedSyncFinishedBeforeDispose: true, historyRows: 200, afterDisposeWrites: false, newAdmissionsRejected: true })
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
 })

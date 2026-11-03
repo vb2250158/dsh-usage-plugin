@@ -18,6 +18,8 @@ os.homedir=()=>path.join(root,'home')
 const directory=path.join(process.env.DSH_USAGE_DATA_DIR,'dsh-usage')
 await fs.mkdir(directory,{recursive:true})
 await fs.writeFile(path.join(directory,'pricing.json'),JSON.stringify({base:{a:{cacheHit:1,cacheMiss:2,output:3},b:{cacheHit:10,cacheMiss:20,output:30}},currency:'USD',meta:{source:'fixture',syncedAt:Date.now(),count:2}}))
+// Prime the real persisted boundary; two actual edits cross200 without202 redundant disk writes.
+await fs.writeFile(path.join(directory,'pricing-history.json'),JSON.stringify(Array.from({length:199},(_,index)=>({at:index,kind:'historical',label:'synthetic-'+index,currency:'USD',table:{base:{a:{cacheHit:1,cacheMiss:2,output:3}}}}))))
 const listeners=new Map(),routes=new Map()
 plugin.apply({
  on(name,listener){listeners.set(name,listener);return()=>listeners.delete(name)},
@@ -62,10 +64,11 @@ let errorReply
 await routes.get('/usage/api')(Readable.from([JSON.stringify({action:'balance',provider:'deepseek'})]),{writeHead(){},end:text=>errorReply=JSON.parse(text)})
 assert.equal(errorReply.ok,false);assert.match(errorReply.error,/synthetic transport failure/)
 assert.equal(globalThis.usageTransport.requests.length,3,'failed direct request must not replay in a subprocess')
-for(let i=0;i<202;i++)await api({action:'setPrices',prices:{b:{cacheHit:100+i,cacheMiss:200+i,output:300+i}}})
+for(let i=0;i<2;i++)await api({action:'setPrices',prices:{b:{cacheHit:101+i,cacheMiss:201+i,output:301+i}}})
 const history=await api({action:'list'})
 assert.equal(history.pricingHistory.length,200)
-assert.equal(history.pricingHistory.at(-1).table.base.b.cacheMiss,401)
+assert.equal(history.pricingHistory[0].label,'synthetic-2')
+assert.equal(history.pricingHistory.at(-1).table.base.b.cacheMiss,202)
 await listeners.get('dispose')();assert.equal(globalThis.usageTransport.closed,1)
 const persisted=JSON.parse(await fs.readFile(path.join(directory,'pricing-history.json'),'utf8'))
 assert.equal(persisted.length,200);assert.deepEqual(persisted,history.pricingHistory)
