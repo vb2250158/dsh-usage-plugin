@@ -18,6 +18,8 @@
 
 其他统计插件可通过公开 `settings.usage-statistics.tab`（list、root）贡献页面，声明 `id`、`order` 和本地化 `label`，使用 `slots.inject` 后 `slots.register`。父页通过 `renderSlot` 传入 `close` 与 `active`；页面在 `active: false` 时停止轮询，不创建额外弹窗。TypeScript 消费方可使用 `import type {} from 'dsh-usage-plugin/usage-statistics-slots'` 获取唯一的槽声明。
 
+2.0.0-fork.1 按逻辑合入上游 v2：修正月历星期，余额逐币种显示，共用支持系统代理的进程内 HTTP；静默轮询只读取数据版本，记录、别名、价格、货币及预算变化后才取全量。保留通用 OpenRouter 美元目录、每条记录冻结的缓存写入单价、自定义统计页面、Skill 标签与宿主会话跳转；不使用上游固定人民币价表或替换页面。价格改动、同步及重置追加最多 200 条审计快照；快照不参与计费。实际版本来自包元数据。
+
 [GitHub](https://github.com/vb2250158/dsh-usage-plugin) · [upstream](https://github.com/feiyang-dev/dsh-usage-plugin) · MIT License
 
 
@@ -78,7 +80,7 @@ dsh-usage-plugin 是 DeepSeek Harness 生态的**用量与消耗统计插件**�
 - **用量与消耗**：记录每次模型调用的 token 用量与缓存命中（输入·未命中 / 缓存命中 / 缓存写入 / 输出 / 推理 / 结束原因），按 DeepSeek 峰谷/基础价格计算消耗（工作日高峰时段按北京时间 9:00–12:00、14:00–18:00 计价；自 2026-08-23 起周末全天按空闲价计费）。模型名以请求参数为准如实显示（非 DeepSeek 模型不再显示为「未知模型」，无官方价格的模型消耗按 0 统计）。概览含「按模型」表与「按 API 服务商 × 模型」明细表（每个服务商一组，组内列出各模型的调用与高峰/空闲分列消耗），底部有总费用合计。概览还支持**日期筛选**（今天 / 近 7 天 / 近 30 天 / 全部，外加自定义起止区间），可将聚合统计限定到任意一天或日期范围。
 - **会话消耗排行**：概览底部列出消耗最高的 10 个会话（按消耗降序，同额时按最近调用），每行给出序号、会话名、消耗长条、调用次数与 token 量、金额。**会话名取自宿主会话列表**（有标题用标题，没有则退回项目目录名，最后才退回会话 id），与侧栏里看到的一致；**点击会话名可直接跳转到该会话**，从设置面板点进去时会一并收起设置。不在宿主列表里的会话（记录里更早、列表已不包含的那些）保持纯文本、不可点击。
 - **用量日历**：按月查看每日用量热力图（按消耗或调用数着色），悬停查看详情（含高峰 / 空闲消耗拆分）、点击某天查看当日调用明细与高峰/空闲消耗统计，附每日统计表（高峰消耗 / 空闲消耗 / 总消耗分列）与汇总。支持**日期范围筛选**（今天 / 近7天 / 近30天 / 全部 + 自定义起止日期）：筛选激活时每日统计表跨月显示范围内所有天、顶部卡片切换为「范围内调用 / 范围内消耗」并按范围汇总、热力图仅对范围内日期着色。
-- **缓存命中列表**：最新记录排在最前，支持 今天 / 近7天 / 近30天 / 全部 快捷筛选与自定义起止日期区间，汇总行与表尾合计区分高峰消耗 / 空闲消耗 / 总费用合计；列表分页渲染（每页 100 条），记录量大也不卡顿。
+- **明细（缓存命中 / 按模型 / 按服务商）**：最新记录排在最前，支持 今天 / 近7天 / 近30天 / 全部 快捷筛选与自定义起止日期区间，汇总行与表尾合计区分高峰消耗 / 空闲消耗 / 总费用合计；列表分页渲染（每页 100 条），记录量大也不卡顿。
 - **中断调用如实呈现**：被中止 / 出错 / 超时（如手动停止生成、流中断）的调用在面板中标红显示「中断」徽标、结束原因（已中断 / 错误 / 超时）与消耗 `—`。这类调用官方后台仍会计入「API 请求次数」并按实际 token 计费，但 harness 不向插件上报 usage——插件按 0 token 记录它们，**调用次数与官方口径一致，消耗不受影响**；概览「调用次数」卡片会提示 `中断 N（未计费）`。
 - **本地统计 vs 官方后台的差异提示**：用量面板顶部固定显示说明横幅——本面板统计的是插件本地捕获的调用（官方价格 + 峰谷时段），与官方后台（platform.deepseek.com 用量页）相比金额可能更低：① 中断/出错/超时的调用官方仍按实际 token 计费而插件按 0 记录；② 账号下其他 API Key（其它应用/脚本）的调用不经过 DeepSeek Harness，官方包含而插件不包含；③ 精确对账可导出官方月度账单 CSV 对比。检测到中断调用时，横幅额外以红字显示「当前记录中有 N 次中断调用（未计费）」。
 - **价格表**：**DeepSeek 官方 API 价格表**（覆盖官方模型 `deepseek-v4-flash` / `deepseek-v4-flash-vision-exp` / `deepseek-v4-pro`），展示基础价与峰谷价（高峰/空闲）单价表，高峰价与空闲价分列展示，支持在面板内直接编辑价格并持久化（数据目录 `pricing.json`），也可一键恢复默认。
@@ -220,12 +222,23 @@ node node_modules/dsh-usage-plugin/scripts/wire.js
 重启 DeepSeek Harness 的 web 应用（命令行：结束旧进程后重新运行 `dsh web`；桌面应用：完全退出后重新打开）。然后：
 
 - 刷新 http://127.0.0.1:3080 ，顶部「对话」「轨迹」之后会出现 **「用量与消耗」** 和 **「剩余余额查询」** 两个 tab；设置里也有对应入口。
-- 「用量与消耗」面板内含 **概览 / 用量日历 / 缓存命中列表 / 价格表** 四个子页签。
+- 「用量与消耗」面板自 v1.22.0 起按**用途**而非**数据来源**分页：**用量**（摘要条 + 关键指标 + 趋势 / 占比）、**日历**（热力图 + 每日统计）、**明细**（按模型 / 按服务商 / 缓存命中）、**设置**（价格表 / 汇率 / 预算 / 历史快照 / 口径声明 / 导出与数据）。
 - 发一条消息后，「用量与消耗」面板应出现本次调用的 token / 消耗记录。
 
 ### 5. 配置（余额查询需要）
 
 「剩余余额查询」使用当前配置的 `DEEPSEEK_API_KEY`：在 **设置 → 模型** 中配置 API Key（与跑对话用的同一个 key），然后打开「剩余余额查询」tab 点「查询余额」。
+
+面板共 6 个服务商页签，凭据要求各不相同：
+
+| 页签 | 所需凭据 | 说明 |
+| --- | --- | --- |
+| DeepSeek | `DEEPSEEK_API_KEY`（设置 → 模型） | 自 v1.19.0 起**多币种账户会按币种逐行展示**（人民币赠送余额 + 美元充值余额同时可见，不再只显示数组第一条） |
+| SiliconFlow | 「设置 → 模型」中 Provider ID / 显示名为 siliconflow 的提供商所引用的 API Key | 该公开接口不返回代金券与历史用量 |
+| DigitalOcean | 账户级 `dop_v1_` Personal Access Token（含 `billing:read`） | 可在此页直接保存 Token，不需要重启 |
+| AMD GPU Cloud | — | 无公开余额 API，只给控制台入口 |
+| 百炼 Token Plan | 百炼控制台 OAuth token（`bl auth login --console` 生成） | 展示 1 周配额的已用进度与周期 |
+| 百炼按量付费 | — | 扣的是阿里云账户余额，**模型 API Key 查不到**；请到阿里云费用中心查看（见 issue #15） |
 
 ---
 
@@ -297,6 +310,8 @@ npm ls dsh-usage-plugin --prefix ~/.dsh/profiles/web
 - **写入是原子的**：先写同目录临时文件并刷盘，再原子替换目标文件；失败时原文件保持不变。
 - **损坏文件不会静默清零**：若数据文件存在但无法解析，插件不会把它当成空数据（旧版本会，且随后用空数据覆盖掉整份历史），而是把原件改名保留为 `usage-records.json.corrupt-<时间戳>.json` 后继续启动，方便人工抢救。
 - 价格配置（面板内编辑后保存）：`<数据根>/dsh-usage/pricing.json`
+- 价格表历史快照（每次改价 / 恢复默认自动追加，最多 200 条，只增不改）：`<数据根>/dsh-usage/pricing-history.json`
+  - 只用于回看「某个时刻用的是哪套价」，**不参与任何金额计算**。本 fork 的通用美元目录不按法定节假日切换单价。
 - 导出目录（默认）：`<数据根>/dsh-usage/{csv,json,images}/`
 - 自定义导出目录：在面板「导出目标目录」里填写或点「选择目录…」
 - 启动诊断日志（若插件激活失败）：数据根旁的 `dsh-usage-boot.log`
@@ -354,6 +369,8 @@ npm ls dsh-usage-plugin --prefix ~/.dsh/profiles/web
 | `dsh plugin` 报 pnpm not found | 安装 pnpm：`npm install -g pnpm` |
 | 安装时连不上 npm 官方源 | 配置镜像：`npm config set registry https://registry.npmmirror.com`（或对 pnpm 设 `pnpm config set registry ...`）后再执行安装命令 |
 | 卸载后仍报 `Cannot find package '@feiyang666/...'` | profile 里残留了包引用。删掉 `cordis.patch.yml` 中对应行与 `dsh.profile.bundles` 里的包名，重启 |
+| Desktop 0.2.x 上费用恒为 ¥0、且价格页提示"全部记录都没有冻结单价" | 1.18.0 及更早只认 `deepseek-official` / `deepseek` 两个 provider id，而桌面端官方账号的 id 是 `deepseek-account`。升级到 **1.19.0** 起按前缀识别所有 `deepseek-*`，新记录冻结单价，历史记录的费用也会一并算对（issue #19） |
+| 余额只显示一种货币 | 1.19.0 起按 `/user/balance` 的 `balance_infos` 逐币种展示；旧版只取第一条数组元素（issue #17） |
 
 ---
 
@@ -397,6 +414,7 @@ pnpm dsh web
 - **[@mumuer1024](https://github.com/mumuer1024)**：报告并定位了持久化路径随会话工作区漂移导致历史数据"消失/统计为 0"的问题，提出把数据写到固定专用目录的方案（[#4](https://github.com/feiyang-dev/dsh-usage-plugin/issues/4)）；并报告了 DeepSeek 搜索后端调用未计入统计导致费用被严重低估的问题，给出了可在官方账单上交叉验证的完整取证（[#12](https://github.com/feiyang-dev/dsh-usage-plugin/issues/12)）。
 - **[@liu3734](https://github.com/liu3734)**：报告并定位 macOS（POSIX）下路径处理与 spawn 的 Windows 专用问题，提出跨平台修复方案（[#1](https://github.com/feiyang-dev/dsh-usage-plugin/issues/1)）。
 - **[@zhiqiangme](https://github.com/zhiqiangme)**：提交了历史用量回填与侧边栏余额的大型 PR（[#14](https://github.com/feiyang-dev/dsh-usage-plugin/pull/14)）。其中**「`cacheWriteTokens` 兜底导致四桶双计」、「同毫秒记录按 `time` 去重会互相覆盖」、「用量文件非原子写入且解析失败被静默清零」三项定位**已成为 v1.18.0 计费口径修复的核心依据（详见 [CHANGELOG](./CHANGELOG.md)）。
+- **[@vb2250158](https://github.com/vb2250158)**：提交 PR [#18](https://github.com/feiyang-dev/dsh-usage-plugin/pull/18)，定位并修复趋势图 X 轴日期在窄图下重叠的问题，给出「按 canvas 实测文本宽度排布 + 首尾日期优先」的完整方案与回归用例，已并入 v1.24.0。
 
 ## 更新日志
 

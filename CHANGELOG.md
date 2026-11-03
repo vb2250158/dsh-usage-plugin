@@ -1,5 +1,10 @@
 # 更新日志 / Changelog
 
+## 2.0.0-fork.1
+
+Merged upstream v2 calendar, multi-currency balance and in-process HTTP fixes. Added revision-based polling, projection/overview reuse and bounded price history. Retained the universal OpenRouter USD catalog, captured cache-write prices, customized statistics dashboard, skill slot and public session navigation. The upstream fixed CNY tariffs and replacement dashboard do not override these fork features.
+
+
 ## 1.24.0 (2026-11-01)
 
 - Adopt upstream v2.0.0 trend-chart date ticks (`trendDateTicks`, 8px spacing, endpoints first) and its `test/trend-ticks.test.js`; drop the fork's own tick layout.

@@ -21,6 +21,8 @@ New calls capture their catalog prices. Search-backend records carry an Estimate
 
 Settings now opens **Usage statistics** with a **Usage & Cost** tab. Installing `dsh-usage-analytics` 1.2.0 or later adds **Skill usage**. Switching tabs preserves visited pages, date selections and search state; hidden pages pause automatic refresh. Session links open the conversation and close Settings. The conversation Usage & Cost view retains its existing entry.
 
+2.0.0-fork.1 integrates upstream v2 calendar and multi-currency balance fixes, proxy-aware in-process HTTP, revision polling and projection/overview reuse. Records, aliases, prices, currency and budget changes invalidate the relevant caches. The universal OpenRouter USD catalog, captured cache-write prices, custom statistics dashboard, Skill tab and public session links remain. Fixed upstream CNY tariffs and replacement pages do not replace them. Price edits, sync and resets append up to 200 audit snapshots; these never calculate costs. The API reports the installed package version.
+
 Other statistics plugins can contribute to the public `settings.usage-statistics.tab` list/root slot through `slots.inject` and `slots.register`, supplying `id`, `order` and a localized `label`. The parent supplies `close` and `active` through `renderSlot`; pages stop polling when inactive and render without another modal. TypeScript consumers can import the single slot declaration with `import type {} from 'dsh-usage-plugin/usage-statistics-slots'`.
 
 [GitHub](https://github.com/vb2250158/dsh-usage-plugin) · [upstream](https://github.com/feiyang-dev/dsh-usage-plugin) · MIT License
@@ -235,6 +237,17 @@ Restart the DeepSeek Harness web app (command line: kill the old process and re-
 
 "Balance Query" uses the configured `DEEPSEEK_API_KEY`: set the API Key in **Settings → Models** (same key used for chats), then open the "Balance Query" tab and click "Query Balance".
 
+The panel has six provider tabs, each with its own credential requirements:
+
+| Tab | Credential | Notes |
+| --- | --- | --- |
+| DeepSeek | `DEEPSEEK_API_KEY` (Settings → Models) | Since v1.19.0 a **multi-currency account shows one line per currency** (CNY granted balance and USD topped-up balance at the same time instead of only the first array element) |
+| SiliconFlow | The API key referenced by the provider whose Provider ID / display name is siliconflow in Settings → Models | The public endpoint returns no vouchers or historical usage |
+| DigitalOcean | Account-level `dop_v1_` Personal Access Token (with `billing:read`) | The token can be saved right on this page, no restart needed |
+| AMD GPU Cloud | — | No public balance API; console link only |
+| Bailian Token Plan | Bailian console OAuth token (`bl auth login --console`) | Shows the 1-week quota usage and period |
+| Bailian pay-as-you-go | — | Billed against your Alibaba Cloud account balance, which a **model API key cannot query**; check the Alibaba Cloud billing console (issue #15) |
+
 ---
 
 ## Uninstall
@@ -305,6 +318,8 @@ npm ls dsh-usage-plugin --prefix ~/.dsh/profiles/web
 - **Writes are atomic**: a temporary file in the same directory is written, flushed, and then atomically renamed over the target; a failure leaves the existing file untouched.
 - **A corrupt file is never silently zeroed**: if the data file exists but cannot be parsed, the plugin no longer treats it as empty data (older versions did — and then overwrote the whole history with that empty array). It renames the original to `usage-records.json.corrupt-<timestamp>.json` and keeps starting, so the data can be recovered by hand.
 - Price config (edited & saved in the panel): `<data root>/dsh-usage/pricing.json`
+- Price-table snapshots (appended on every price edit / reset, capped at 200, append-only): `<data root>/dsh-usage/pricing-history.json`
+  - Used only to review "which table applied at that moment"; it **never participates in cost calculation**. This fork’s universal USD catalog does not change tariffs for legal holidays.
 - Default export dir: `<data root>/dsh-usage/{csv,json,images}/`
 - Custom export dir: set in the panel's "Export target directory" or click "Choose directory…"
 - Startup diagnostics (if the plugin fails to activate): `dsh-usage-boot.log` next to the data root
@@ -362,6 +377,8 @@ Each record **freezes the three unit prices in effect when it was written** (its
 | `dsh plugin` reports pnpm not found | Install pnpm: `npm install -g pnpm` |
 | Install can't reach the npm registry | Set a mirror: `npm config set registry https://registry.npmmirror.com` (or `pnpm config set registry ...`) and retry |
 | After uninstall, still reports `Cannot find package '@feiyang666/...'` | A package reference remains in the profile. Remove the corresponding row from `cordis.patch.yml` and the package name from `dsh.profile.bundles`, then restart |
+| On Desktop 0.2.x every cost is ¥0 and the price page reports that all records lack a frozen unit price | 1.18.0 and earlier only recognised the provider ids `deepseek-official` / `deepseek`, while the desktop app's official-account provider id is `deepseek-account`. Since **1.19.0** every `deepseek-*` id is matched by prefix, new records freeze their unit prices, and historical records are priced correctly too — issue #19 |
+| Balance shows only one currency | Since 1.19.0 every entry of `/user/balance`'s `balance_infos` is shown; older versions only read the first element — issue #17 |
 
 ---
 
