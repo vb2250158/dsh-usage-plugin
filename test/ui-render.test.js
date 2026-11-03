@@ -187,3 +187,21 @@ test('host code never passes maxRedirections to undici request()', async () => {
   // 只查"作为请求选项传入"（`maxRedirections:`），注释里提到它不算
   assert.equal(/maxRedirections\s*:/.test(src), false, 'lib/index.js must not pass maxRedirections to undici')
 })
+
+test('automatic price history labels follow the locale while custom labels are preserved', async () => {
+  const client = await loadClient()
+  const history = [
+    { at: 1000, kind: 'baseline', label: 'Existing catalog baseline', currency: 'USD', table: defaultPricing() },
+    { at: 2000, kind: 'sync', label: 'OpenRouter catalog sync', currency: 'USD', table: defaultPricing() },
+    { at: 3000, kind: 'edit', label: 'My audit label', currency: 'USD', table: defaultPricing() }
+  ]
+  for (const [language, expected] of [['zh', '现有价格目录基线'], ['en', 'Existing catalog baseline']]) {
+    client.__i18n.setLang(language)
+    const output = []
+    flatten(client.__views.PriceView({ pricing: defaultPricing(), pricingHistory: history }), output, 0)
+    const text = output.join(' ')
+    assert.ok(text.includes(expected))
+    assert.ok(text.includes('My audit label'))
+    if (language === 'zh') assert.doesNotMatch(text, /Existing catalog baseline|OpenRouter catalog sync/)
+  }
+})
