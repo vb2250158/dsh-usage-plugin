@@ -19,6 +19,8 @@ New calls capture their catalog prices. Search-backend records carry an Estimate
 
 **English** · [简体中文](./README.zh.md)
 
+Version 2.0.0-fork.2 removes its API routes and closes SSE subscriptions on unload, then waits for admitted work and pending writes before closing the shared HTTP dispatcher. A model stream already running remains under its caller's control; its final usage is not collected by this plugin after unload. Lifecycle regressions use Node 24 and the declared Cordis development dependency.
+
 Settings now opens **Usage statistics** with a **Usage & Cost** tab. Installing `dsh-usage-analytics` 1.2.0 or later adds **Skill usage**. Switching tabs preserves visited pages, date selections and search state; hidden pages pause automatic refresh. Session links open the conversation and close Settings. The conversation Usage & Cost view retains its existing entry.
 
 2.0.0-fork.1 integrates upstream v2 calendar and multi-currency balance fixes, proxy-aware in-process HTTP, revision polling and projection/overview reuse. Records, aliases, prices, currency and budget changes invalidate the relevant caches. The universal OpenRouter USD catalog, captured cache-write prices, custom statistics dashboard, Skill tab and public session links remain. Fixed upstream CNY tariffs and replacement pages do not replace them. Price edits, sync and resets append up to 200 audit snapshots; these never calculate costs. The API reports the installed package version.

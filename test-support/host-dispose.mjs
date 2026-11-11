@@ -18,14 +18,17 @@ globalThis.usageReview={requestEntered:Promise.withResolvers(),release:Promise.w
 const hook=registerHooks({resolve(name,context,next){return name==='undici'?{shortCircuit:true,url:new URL('./delayed-undici.mjs',import.meta.url).href}:next(name,context)}})
 try {
  const {default:plugin}=await import('../lib/index.js')
- const listeners=new Map(),routes=new Map()
- plugin.apply({on(name,listener){listeners.set(name,listener);return()=>listeners.delete(name)},get:name=>name==='webServer'?{register:route=>routes.set(route.path,route.handler)}:undefined})
- async function request(body){let value;await routes.get('/usage/api')(Readable.from([JSON.stringify(body)]),{writeHead(){},end:text=>value=JSON.parse(text)});return value}
+ const {Context}=await import(process.env.DSH_USAGE_TEST_CORDIS ?? '@deepseek-ai/cordis')
+ const context=new Context(),routes=new Map()
+ context.provide('webServer',{register:route=>{routes.set(route.path,route.handler);return()=>routes.delete(route.path)}})
+ const fiber=context.plugin(scope=>plugin.apply(scope));await fiber.await()
+ const apiHandler=routes.get('/usage/api')
+ async function request(body){let value;await apiHandler(Readable.from([JSON.stringify(body)]),{writeHead(){},end:text=>value=JSON.parse(text)});return value}
  assert.equal((await request({action:'list'})).ok,true)
  const pending=request({action:'syncPrices'})
  await usageReview.requestEntered.promise
  let finished=false
- const disposed=listeners.get('dispose')().then(()=>{finished=true;usageReview.events.push('dispose-returned')})
+ const disposed=fiber.dispose().then(()=>{finished=true;usageReview.events.push('dispose-returned')})
  await Promise.resolve()
  assert.equal(finished,false,'Unload must wait for the admitted complete price-sync operation')
  usageReview.release.resolve()
@@ -41,5 +44,7 @@ try {
  assert.equal(createHash('sha256').update(await fs.readFile(historyPath)).digest('hex'),hash)
  assert(usageReview.events.indexOf('body-consumed')<usageReview.events.indexOf('dispatcher-close-returned'))
  assert(usageReview.events.indexOf('dispatcher-close-returned')<usageReview.events.indexOf('dispose-returned'))
+ assert.equal(routes.size,0)
+ await context.fiber.dispose()
  console.log(JSON.stringify({admittedSyncFinishedBeforeDispose:true,historyRows:200,afterDisposeWrites:false,newAdmissionsRejected:true}))
 } finally { hook.deregister() }

@@ -1,5 +1,11 @@
 # 更新日志 / Changelog
 
+## 2.0.0-fork.2
+
+Unload closes API and SSE admission, removes routes and waits for admitted initialization, request, event and persistence work before closing the HTTP dispatcher. Running model streams remain owned by their callers; usage from a stream still running at unload is not recorded by the unloaded plugin.
+
+卸载时关闭 API 和 SSE 入口、注销路由，并等待已接收的初始化、请求、事件和持久化工作完成后关闭 HTTP 代理。仍在运行的模型流继续由调用方控制；卸载时尚未完成的流不会再由本插件记录用量。
+
 ## 2.0.0-fork.1
 
 Unload now settles admitted price synchronization through its final history write before releasing the HTTP dispatcher, and rejects new writes after disposal starts.

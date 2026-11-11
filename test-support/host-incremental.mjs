@@ -20,10 +20,11 @@ await fs.mkdir(directory,{recursive:true})
 await fs.writeFile(path.join(directory,'pricing.json'),JSON.stringify({base:{a:{cacheHit:1,cacheMiss:2,output:3},b:{cacheHit:10,cacheMiss:20,output:30}},currency:'USD',meta:{source:'fixture',syncedAt:Date.now(),count:2}}))
 // Prime the real persisted boundary; two actual edits cross200 without202 redundant disk writes.
 await fs.writeFile(path.join(directory,'pricing-history.json'),JSON.stringify(Array.from({length:199},(_,index)=>({at:index,kind:'historical',label:'synthetic-'+index,currency:'USD',table:{base:{a:{cacheHit:1,cacheMiss:2,output:3}}}}))))
-const listeners=new Map(),routes=new Map()
+const listeners=new Map(),routes=new Map(),disposers=[]
 plugin.apply({
  on(name,listener){listeners.set(name,listener);return()=>listeners.delete(name)},
- get(name){return name==='webServer'?{register:route=>routes.set(route.path,route.handler)}:name==='credentials'?{resolve:async()=>({value:'synthetic-key',source:'fixture'})}:undefined},
+ effect(fn){const dispose=fn();if(typeof dispose==='function')disposers.push(dispose)},
+ get(name){return name==='webServer'?{register:route=>{routes.set(route.path,route.handler);return()=>routes.delete(route.path)}}:name==='credentials'?{resolve:async()=>({value:'synthetic-key',source:'fixture'})}:undefined},
 })
 async function api(body){let value;await routes.get('/usage/api')(Readable.from([JSON.stringify(body)]),{writeHead(){},end:text=>{value=JSON.parse(text)}});assert.equal(value.ok,true,JSON.stringify(value));return value}
 const row={time:1000,model:'route-model',provider:'fixture',inputTokens:2,outputTokens:3,cacheReadTokens:1,cacheWriteTokens:0,reasoningTokens:0,finishReason:'stop'}
@@ -69,7 +70,7 @@ const history=await api({action:'list'})
 assert.equal(history.pricingHistory.length,200)
 assert.equal(history.pricingHistory[0].label,'synthetic-2')
 assert.equal(history.pricingHistory.at(-1).table.base.b.cacheMiss,202)
-await listeners.get('dispose')();assert.equal(globalThis.usageTransport.closed,1)
+for (const dispose of disposers.reverse()) await dispose();assert.equal(globalThis.usageTransport.closed,1)
 const persisted=JSON.parse(await fs.readFile(path.join(directory,'pricing-history.json'),'utf8'))
 assert.equal(persisted.length,200);assert.deepEqual(persisted,history.pricingHistory)
 hooks.deregister()

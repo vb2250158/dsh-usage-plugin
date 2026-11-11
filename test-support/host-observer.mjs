@@ -18,7 +18,8 @@ await fs.writeFile(path.join(directory, 'pricing.json'), JSON.stringify({
 const listeners = new Map(), routes = new Map()
 plugin.apply({
   on: (name, listener) => { listeners.set(name, listener); return () => listeners.delete(name) },
-  get: name => name === 'webServer' ? { register: route => routes.set(route.path, route.handler) } : undefined,
+  effect: fn => fn(),
+  get: name => name === 'webServer' ? { register: route => { routes.set(route.path, route.handler); return () => routes.delete(route.path) } } : undefined,
 })
 async function api(body) {
   let value

@@ -14,6 +14,8 @@
 
 [English](./README.md) | **简体中文**
 
+2.0.0-fork.2 卸载时注销 API 路由并关闭 SSE 订阅，等待已接收的工作和待完成的写入后关闭共享 HTTP 代理。已在运行的模型流仍由调用方控制；本插件卸载后不再采集该流的最终用量。生命周期回归使用 Node 24 和声明的 Cordis 开发依赖。
+
 设置中的“使用情况统计”包含“用量与消耗”标签；同时安装 `dsh-usage-analytics` 1.2.0 或更新版本时增加“Skill 使用”标签。切换标签保留已选日期、页面和搜索状态，隐藏页暂停自动刷新。点击会话链接打开对应对话并关闭设置。对话中的“用量与消耗”视图保持原有入口。
 
 其他统计插件可通过公开 `settings.usage-statistics.tab`（list、root）贡献页面，声明 `id`、`order` 和本地化 `label`，使用 `slots.inject` 后 `slots.register`。父页通过 `renderSlot` 传入 `close` 与 `active`；页面在 `active: false` 时停止轮询，不创建额外弹窗。TypeScript 消费方可使用 `import type {} from 'dsh-usage-plugin/usage-statistics-slots'` 获取唯一的槽声明。
